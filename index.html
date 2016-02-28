@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<body>  
+    &bull; Fully Functional Game<br>
+    &bull; Left and Right arrows to move claw<br>
+    &bull; Down Arrow to drop<br>
+    &bull; Try to grab all 3 pieces!!!<br>
+	<canvas id="myCanvas" width="500" height="700"></canvas>
+    
+  
+    
+</body>
+<script>"use strict"
+
+var clawXAxis = 100; //starting position;
+var chainRotation = 0;
+var clawRotation = 0;
+var orange = false;
+var green = false;
+var pink = false;
+var prize = false;
+var orangeX = 0;
+var orangeY = 0;
+var pinkX = 0;
+var pinkY = 0;
+var greenX = 0;
+var greenY = 0;
+var joyStick = 0;
+var dropColor = "lightgreen";
+    
+    
+var canvas = document.getElementById('myCanvas');
+var context = canvas.getContext('2d');
+
+function run() { "use strict";
+    canvas.width = canvas.width; //resets drawing           
+    //Outline of machine
+    context.fillStyle = "black"; 
+    context.fillRect(25, 105, 450, 4); //black top bar
+    context.fillStyle = "grey"; 
+    context.fillRect(130, 400, 4, 130); //grey line           
+    context.fillStyle = "#F5F5DC"
+    context.fillRect(20, 20, 460, 80); //top
+    context.fillRect(20, 20, 20, 500); //left side
+    context.fillRect(460, 20, 20, 500); //right side
+    context.fillRect(20, 490, 460, 340); //base
+    context.fillStyle = "grey"; 
+    context.fillRect(40, 600, 90, 100); //Prize bin   
+    context.fillStyle = "black";  
+    context.font = "48px serif";
+    context.fillText("CS 559 Claw Game", 55, 80);
+    context.font = "14px serif";
+    context.fillText("GRAB PRIZE", 44, 590);
+    context.fillStyle = dropColor;
+    context.fillRect(330, 530, 80, 40);
+    context.fillStyle = "black";
+    context.font = "14px serif";
+    context.fillText("DROP", 350, 554);
+                
+    //joyStick
+    if (joyStick == 0) {
+        context.beginPath();
+        context.moveTo(250,540);
+        context.lineTo(258,540);
+        context.lineTo(258,590);
+        context.lineTo(250,590);
+        context.lineTo(250,540);
+        context.fillStyle = "lightgray";
+        context.fill();
+        context.beginPath();
+        context.arc(253.5, 530, 15, 0, 2 * Math.PI, false);
+        context.fillStyle = 'orangered';
+        context.fill();
+        context.lineWidth = 2;
+        context.strokeStyle = '#003300';
+        context.stroke();
+    } else if (joyStick == 2) {
+        
+        context.beginPath();
+        context.translate(250,590);
+        context.rotate(1);
+        context.moveTo(0,0);
+        context.lineTo(8,0);
+        context.lineTo(8,-50);
+        context.lineTo(0,-50);
+        context.lineTo(0,0);
+        context.fillStyle = "lightgray";
+        context.fill();
+        context.beginPath();
+        context.arc(3.5,-59, 15, 0, 2 * Math.PI, false);
+        context.fillStyle = 'orangered';
+        context.fill();
+        context.lineWidth = 2;
+        context.strokeStyle = '#003300';
+        context.stroke();
+        context.rotate(-1);
+        context.translate(-250,-590);
+    } else if (joyStick == 1) {
+        context.beginPath();
+        context.translate(250,590);
+        context.rotate(-1);
+        context.moveTo(0,0);
+        context.lineTo(8,0);
+        context.lineTo(8,-50);
+        context.lineTo(0,-50);
+        context.lineTo(0,0);
+        context.fillStyle = "lightgray";
+        context.fill();
+        context.beginPath();
+        context.arc(3.5,-59, 15, 0, 2 * Math.PI, false);
+        context.fillStyle = 'orangered';
+        context.fill();
+        context.lineWidth = 2;
+        context.strokeStyle = '#003300';
+        context.stroke();
+        context.rotate(1);
+        context.translate(-250,-590);
+    }
+    
+    //prize pieces        
+    linkagePrize("orange", orangeX, orangeY);
+    context.save();
+    context.translate(75,0);
+    linkagePrize("pink", pinkX, pinkY);
+    context.save();
+    context.translate(90,0);
+    linkagePrize("green", greenX, greenY);
+    context.restore();
+    context.restore();
+                
+    //Claw Drawings            
+    context.translate(clawXAxis,110); //first chain link
+    context.rotate((0 - chainRotation) * 2 * Math.PI / 180);
+    linkageChain("red");
+    context.save();    
+    context.translate(-60,0); //second chain link
+    context.rotate((-90 + chainRotation * 2) * 2 * Math.PI / 180);
+    linkageChain("red");
+    context.save();
+    context.translate(-60,0); 
+    context.rotate((90 - chainRotation * 2) * 2 * Math.PI / 180);//3rd chain link
+    linkageChain("red");
+    context.save();
+    context.translate(-60,0); 
+    context.rotate((-90 + chainRotation * 2) * 2 * Math.PI / 180);//4th chain link
+    linkageChain("red");   
+    context.save();
+    context.translate(-60,0);  //claw
+    context.rotate((90 - chainRotation) * 2 * Math.PI / 180);
+
+    claw();
+                
+    context.restore();
+    context.restore();
+    context.restore();
+    context.restore();
+                  
+    //controls claw              
+    function claw() {
+        context.fillStyle = "black";
+        linkageClaw();
+        context.save();
+        
+        context.translate(0,45); // left claw
+        context.rotate((80 - clawRotation) * Math.PI / 180);
+        linkageClaw();
+        context.save();
+        context.translate(0,45);
+        context.rotate(-40 * 2 * Math.PI / 180);
+        linkageClaw();
+        
+        context.restore();
+        context.restore();
+        
+        context.translate(0,45); //right claw
+        context.rotate((-80 + clawRotation) * Math.PI / 180);
+        linkageClaw();
+        context.save();
+        context.translate(0,45);
+        context.rotate(40 * 2 * Math.PI / 180);
+        linkageClaw();
+        
+        context.restore();
+    }        
+    
+    //draws claw links
+    function linkageClaw(){
+      context.beginPath();
+      context.moveTo(0,0);
+      context.lineTo(3,10);
+      context.lineTo(3,40);
+      context.lineTo(0,50);
+      context.lineTo(-3,40);
+      context.lineTo(-3,10);
+      context.closePath();
+      context.fill();
+    }             
+    
+    //draws chain links
+    function linkageChain(color) {      
+      context.beginPath();
+      context.fillStyle = color;
+      context.moveTo(0,0);
+      context.lineTo(-10,3);
+      context.lineTo(-50,3);
+      context.lineTo(-60,0);
+      context.lineTo(-50,-3);
+      context.lineTo(-10,-3);
+      context.closePath();
+      context.fill();
+      
+    }
+                
+    //draws chain links
+    function linkagePrize(color, x, y) {      
+      context.beginPath();
+      context.fillStyle = color;
+      context.moveTo(230 + x,490 + y);
+      context.lineTo(226 + x,480 + y);
+      context.lineTo(226 + x,450 + y);
+      context.lineTo(230 + x,440 + y);
+      context.lineTo(234 + x,450 + y);
+      context.lineTo(234 + x,480 + y);
+      context.closePath();
+      context.fill();
+      
+    }
+} //end of Run()
+
+var downTicks = 0;
+var pinchTicks = 0;
+   
+function clawDrop() {
+    downTicks++;
+    if (downTicks < 45) {
+        setTimeout(function(){
+            chainRotation++;
+            run();
+            clawDrop();
+        }, 50);
+    }  else {
+        clawPinch();
+    }
+}
+    
+function clawPinch() {
+    pinchTicks++;
+    if ((pinchTicks < 40) ^ (pinchTicks >= 36 && prize)) {
+        
+        if (pinchTicks >= 35 && prize) {
+            if (orange && clawXAxis == 225) orangeX -= 5;
+            if (orange && clawXAxis == 235) orangeX += 5;
+            if (pink && clawXAxis == 300) pinkX -= 5;
+            if (pink && clawXAxis == 310) pinkX += 5;
+            if (green && clawXAxis == 390) greenX -= 5;
+            if (green && clawXAxis == 400) greenX += 5;
+        }
+        
+        setTimeout(function(){
+            clawRotation++;
+            run();
+            clawPinch();
+        }, 40);
+    }  else {
+        clawRaise();
+    }
+}
+        
+function clawRaise() {
+    downTicks--;
+    if (downTicks > 0) {
+        setTimeout(function(){
+            chainRotation--;
+            if (orange) orangeY -= 1 *( (44.5 - downTicks) / 4) ;
+            if (pink) pinkY -= 1 *( (44.5 - downTicks) / 4) ;
+            if (green) greenY -= 1 *( (44.5 - downTicks) / 4) ;
+            run();
+            clawRaise();
+        }, 40);
+    }  else {
+        clawSetLeft()
+    }
+}
+    
+function clawSetLeft() {
+    clawXAxis--;
+    if (clawXAxis > 100) {
+        setTimeout(function(){
+            clawXAxis--;
+            if (orange) orangeX -= 2;
+            if (pink) pinkX -= 2;
+            if (green) greenX -= 2;
+            run();
+            clawSetLeft();
+        }, 20);
+    }  else {
+        clawRelease();
+        prizeDrop();
+    }
+}
+     
+function clawRelease() {
+    pinchTicks--;
+    if (pinchTicks > 0) {
+        setTimeout(function(){
+            clawRotation--;
+            run();
+            clawRelease();
+        }, 40);
+    }  else {
+        dropColor = "lightgreen";
+        clawXAxis = 100;
+        chainRotation = 0;
+        clawRotation = 0;
+    }
+} 
+    
+function prizeDrop() {
+    if (orange) orangeY++;
+    if (pink) pinkY++;
+    if (green) greenY++;
+    if (greenY < 0 || pinkY < 0 || orangeY < 0) {
+        setTimeout(function(){            
+            run();
+            prizeDrop();
+        }, 10);
+    }  else {
+        prize = false;
+        if (orange) {
+            orangeX = -170;
+            orangeY = 185;
+            setTimeout(function(){            
+                orange = false;
+                run();
+            }, 100);
+            
+        }
+        if (pink) {
+            pinkX = -220;
+            pinkY = 185;
+            setTimeout(function(){            
+                pink = false;  
+                run();
+            }, 100);
+            
+        }
+        if (green) {
+            greenX = -285;
+            greenY = 185;
+            setTimeout(function(){            
+                green = false;   
+                run();
+            }, 100);
+            
+        }
+    }
+}        
+    
+    
+window.onload = run;
+    
+document.onkeydown = function (e) {
+    e = e || window.event;
+    if (e.keyCode == '37') {
+        //left arrow
+        
+        setTimeout(function(){
+            joyStick = 0;
+            run();
+        }, 150);
+        joyStick = 1;
+        
+        if (clawXAxis > 100) clawXAxis -= 5;
+        run();
+    }
+    else if (e.keyCode == '39') {
+        //right arrow
+        
+        setTimeout(function(){
+            joyStick = 0;
+            run();
+        }, 150);
+        joyStick = 2;
+        
+        if (clawXAxis < 410) clawXAxis += 5;
+        run();
+    }
+    else if (e.keyCode == '40') {
+        //down arrow
+        if (clawXAxis >= 190) {
+            if (clawXAxis >= 225 && clawXAxis <= 235) {
+                orange = true;
+                prize = true;
+            } else if (clawXAxis >= 300 && clawXAxis <= 310) {
+                pink = true;
+                prize = true;
+            } else if (clawXAxis >= 390 && clawXAxis <= 400) {
+                green = true;
+                prize = true;
+            }
+            clawDrop();
+            dropColor = "red";
+        }      
+
+    }
+}
+
+</script>
+<head>
+  <meta name="description" content="Canvas Claw Game">
+  <meta charset="utf-8">
+  <title>Canvas Claw Game</title>
+</head>
+</html>
